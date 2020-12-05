@@ -46,6 +46,7 @@ int main()
 	bool bQuit = false;
 	while (!bQuit)
 	{
+		//Pushing a key result in something
 		if (GetForegroundWindow() == GetConsoleWindow())
 		{
 			key[0] = GetAsyncKeyState('1') & 0x8000;
