@@ -1,5 +1,8 @@
 #include <iostream>
 #include <olc_net.h>
+//#include <nlohmann/json.hpp>
+
+using namespace std;
 
 enum class CustomMsgTypes : uint32_t
 {
@@ -9,8 +12,6 @@ enum class CustomMsgTypes : uint32_t
 	MessageAll,
 	ServerMessage,
 };
-
-
 
 class CustomServer : public olc::net::server_interface<CustomMsgTypes>
 {
@@ -67,7 +68,7 @@ protected:
 
 int main()
 {
-	CustomServer server(60000); 
+	CustomServer server(8005); 
 	server.Start();
 
 	while (1)

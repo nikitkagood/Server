@@ -19,4 +19,7 @@
 #include <asio.hpp>
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/internet.hpp>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 

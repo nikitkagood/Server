@@ -1,5 +1,8 @@
 #include <iostream>
 #include <olc_net.h>
+//#include <nlohmann/json.hpp>
+
+using namespace std;
 
 enum class CustomMsgTypes : uint32_t
 {
@@ -10,62 +13,174 @@ enum class CustomMsgTypes : uint32_t
 	ServerMessage,
 };
 
-
+//Json in C++ example
+//json j2 = {
+//  {"pi", 3.141},
+//  {"happy", true},
+//  {"name", "Niels"},
+//  {"nothing", nullptr},
+//  {"answer", {
+//	{"everything", 42}
+//  }},
+//  {"list", {1, 0, 2}},
+//  {"object", {
+//	{"currency", "USD"},
+//	{"value", 42.99}
+//  }}
+//};
 
 class CustomClient : public olc::net::client_interface<CustomMsgTypes>
 {
 public:
-	void PingServer()	
+	//void PingServer()	
+	//{
+	//	olc::net::message<CustomMsgTypes> msg;
+	//	msg.header.id = CustomMsgTypes::ServerPing;
+
+	//	// Caution with this...
+	//	std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();		
+
+	//	msg << timeNow;
+	//	Send(msg);
+	//}
+
+	//void MessageAll()
+	//{
+	//	olc::net::message<CustomMsgTypes> msg;
+	//	msg.header.id = CustomMsgTypes::MessageAll;		
+	//	SendJson(msg);
+	//}
+
+	void Authorize()
 	{
-		olc::net::message<CustomMsgTypes> msg;
-		msg.header.id = CustomMsgTypes::ServerPing;
-
-		// Caution with this...
-		std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();		
-
-		msg << timeNow;
-		Send(msg);
+		json j
+		{
+			{"command", "Authorize"},
+			{"data", {"name", "PlayerName"}}
+		};
+		SendJson(j);
 	}
 
-	void MessageAll()
+	void send_state() 
 	{
-		olc::net::message<CustomMsgTypes> msg;
-		msg.header.id = CustomMsgTypes::MessageAll;		
-		Send(msg);
+		//asio::ip::tcp::socket socket();
+		shared_ptr<asio::ip::tcp::socket> socket_ptr;
+
+		string state;
+		socket_ptr->write_some(state);
+		socket_ptr->read_some(state);
 	}
+
+	//TcpPlayer::send_state() 
+	//{
+	//	tcp_socket->write(state: String)
+	//		tcp_socket->read(state: String)
+	//}
+
+	void bet(int ammount)
+	{
+		//10 is minimal bet
+		json j{ 
+			{"command", "OK"}, 
+			{"data", {"bet", ammount} }
+		};
+		SendJson(j);
+	}
+
+	void insurance()
+	{
+		bool decision = false;
+		//CheckDescinion
+		json j{ 
+			{"command", "OK"}, 
+			{"data" , {"insurance", decision} }
+		};
+	}
+
+	void GameDecision()
+	{
+		//Hit, Stand, Double
+		string decision;
+		json j{ 
+			{"command", "OK"}, 
+			{"data", { "action", decision }} 
+		};
+	}
+
+	//void to_json(json& j, const CustomMsgTypes& msg) {
+	//	//j = json{ {"name", p.name}, {"address", p.address}, {"age", p.age} };
+	//	j = json{ "command", "Authorize", "data" {"name", "PlayerName"} };
+
+	//}
+
+	//void from_json(const json& j, person& p) {
+	//	j.at("name").get_to(p.name);
+	//	j.at("address").get_to(p.address);
+	//	j.at("age").get_to(p.age);
+	//}
 };
 
 int main()
 {
 	CustomClient c;
-	c.Connect("127.0.0.1", 60000);
+	c.Connect("127.0.0.1", 8005);
 
-	bool key[3] = { false, false, false };
-	bool old_key[3] = { false, false, false };
+	c.Authorize();
+	//Server:
+	//{
+	//	"command": "OK",
+	//		"data" : {
+	//		"name": "PlayerName",
+	//			"id" : "UniqueId", (Guid ? )
+	//			"Bank" : 1000
+	//	}
+	//}
+	//Or:
+	//{
+	//	"command": "Error",
+	//		"data" : {
+	//		"description": "desc"
+	//	}
+	//}
+	c.send_state();
+	//Server: send to client cout << Player list ?
+	//Server:
+	//{
+	//	"command": "Bet", // Валидация, что выйгрыш может быть выключен
+	//		"timeout" : 600,
+	//		"data" : {
+	//		"min": 10,
+	//			"max" : 100
+	//	}
+	//}
+	c.bet(20);
+	//Server gives the cards
+
+	//Server (optional):
+	//{
+	//	"command": "Insurance", //Игра проверит достаточно ли средств для страховки
+	//		"data" : { }
+	//}
+	c.insurance();
+	//Server
+	//Hit, Stand, Double
+	//{
+	//	"command": "RequestAction",
+	//	"data" : { }
+	//}
+	//Server give
+
+
+
+
 
 	bool bQuit = false;
 	while (!bQuit)
 	{
-		//Pushing a key result in something
-		if (GetForegroundWindow() == GetConsoleWindow())
-		{
-			key[0] = GetAsyncKeyState('1') & 0x8000;
-			key[1] = GetAsyncKeyState('2') & 0x8000;
-			key[2] = GetAsyncKeyState('3') & 0x8000;
-		}
-
-		if (key[0] && !old_key[0]) c.PingServer();
-		if (key[1] && !old_key[1]) c.MessageAll();
-		if (key[2] && !old_key[2]) bQuit = true;
-
-		for (int i = 0; i < 3; i++) old_key[i] = key[i];
-
 		if (c.IsConnected())
 		{
 			if (!c.Incoming().empty())
 			{
-
-
 				auto msg = c.Incoming().pop_front().msg;
 
 				switch (msg.header.id)
@@ -74,26 +189,6 @@ int main()
 				{
 					// Server has responded to a ping request				
 					std::cout << "Server Accepted Connection\n";
-				}
-				break;
-
-
-				case CustomMsgTypes::ServerPing:
-				{
-					// Server has responded to a ping request
-					std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
-					std::chrono::system_clock::time_point timeThen;
-					msg >> timeThen;
-					std::cout << "Ping: " << std::chrono::duration<double>(timeNow - timeThen).count() << "\n";
-				}
-				break;
-
-				case CustomMsgTypes::ServerMessage:
-				{
-					// Server has responded to a ping request	
-					uint32_t clientID;
-					msg >> clientID;
-					std::cout << "Hello from [" << clientID << "]\n";
 				}
 				break;
 				}

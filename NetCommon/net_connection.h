@@ -48,7 +48,7 @@ namespace olc
 					if (m_socket.is_open())
 					{
 						id = uid;
-						ReadHeader();
+						ReadBody();
 					}
 				}
 			}
@@ -64,7 +64,7 @@ namespace olc
 						{
 							if (!ec)
 							{
-								ReadHeader();
+								ReadBody();
 							}
 						});
 				}
@@ -91,10 +91,29 @@ namespace olc
 		public:
 			// ASYNC - Send a message, connections are one-to-one so no need to specifiy
 			// the target, for a client, the target is the server and vice versa
-			void Send(const message<T>& msg)
+			//void Send(const message<T>& msg)
+			//{
+			//	asio::post(m_asioContext,
+			//		[this, msg]()
+			//		{
+			//			// If the queue has a message in it, then we must 
+			//			// assume that it is in the process of asynchronously being written.
+			//			// Either way add the message to the queue to be output. If no messages
+			//			// were available to be written, then start the process of writing the
+			//			// message at the front of the queue.
+			//			bool bWritingMessage = !m_qMessagesOut.empty();
+			//			m_qMessagesOut.push_back(msg);
+			//			if (!bWritingMessage)
+			//			{
+			//				WriteHeader();
+			//			}
+			//		});
+			//}
+
+			void SendJson(const json& j)
 			{
 				asio::post(m_asioContext,
-					[this, msg]()
+					[this, j]()
 					{
 						// If the queue has a message in it, then we must 
 						// assume that it is in the process of asynchronously being written.
@@ -102,10 +121,10 @@ namespace olc
 						// were available to be written, then start the process of writing the
 						// message at the front of the queue.
 						bool bWritingMessage = !m_qMessagesOut.empty();
-						m_qMessagesOut.push_back(msg);
+						m_qMessagesOut.push_back(j);
 						if (!bWritingMessage)
 						{
-							WriteHeader();
+							WriteBody();
 						}
 					});
 			}
@@ -114,50 +133,50 @@ namespace olc
 
 		private:
 			// ASYNC - Prime context to write a message header
-			void WriteHeader()
-			{
-				// If this function is called, we know the outgoing message queue must have 
-				// at least one message to send. So allocate a transmission buffer to hold
-				// the message, and issue the work - asio, send these bytes
-				asio::async_write(m_socket, asio::buffer(&m_qMessagesOut.front().header, sizeof(message_header<T>)),
-					[this](std::error_code ec, std::size_t length)
-					{
-						// asio has now sent the bytes - if there was a problem
-						// an error would be available...
-						if (!ec)
-						{
-							// ... no error, so check if the message header just sent also
-							// has a message body...
-							if (m_qMessagesOut.front().body.size() > 0)
-							{
-								// ...it does, so issue the task to write the body bytes
-								WriteBody();
-							}
-							else
-							{
-								// ...it didnt, so we are done with this message. Remove it from 
-								// the outgoing message queue
-								m_qMessagesOut.pop_front();
+			//void WriteHeader()
+			//{
+			//	// If this function is called, we know the outgoing message queue must have 
+			//	// at least one message to send. So allocate a transmission buffer to hold
+			//	// the message, and issue the work - asio, send these bytes
+			//	asio::async_write(m_socket, asio::buffer(&m_qMessagesOut.front().header, sizeof(message_header<T>)),
+			//		[this](std::error_code ec, std::size_t length)
+			//		{
+			//			// asio has now sent the bytes - if there was a problem
+			//			// an error would be available...
+			//			if (!ec)
+			//			{
+			//				// ... no error, so check if the message header just sent also
+			//				// has a message body...
+			//				if (m_qMessagesOut.front().body.size() > 0)
+			//				{
+			//					// ...it does, so issue the task to write the body bytes
+			//					WriteBody();
+			//				}
+			//				else
+			//				{
+			//					// ...it didnt, so we are done with this message. Remove it from 
+			//					// the outgoing message queue
+			//					m_qMessagesOut.pop_front();
 
-								// If the queue is not empty, there are more messages to send, so
-								// make this happen by issuing the task to send the next header.
-								if (!m_qMessagesOut.empty())
-								{
-									WriteHeader();
-								}
-							}
-						}
-						else
-						{
-							// ...asio failed to write the message, we could analyse why but 
-							// for now simply assume the connection has died by closing the
-							// socket. When a future attempt to write to this client fails due
-							// to the closed socket, it will be tidied up.
-							std::cout << "[" << id << "] Write Header Fail.\n";
-							m_socket.close();
-						}
-					});
-			}
+			//					// If the queue is not empty, there are more messages to send, so
+			//					// make this happen by issuing the task to send the next header.
+			//					if (!m_qMessagesOut.empty())
+			//					{
+			//						WriteHeader();
+			//					}
+			//				}
+			//			}
+			//			else
+			//			{
+			//				// ...asio failed to write the message, we could analyse why but 
+			//				// for now simply assume the connection has died by closing the
+			//				// socket. When a future attempt to write to this client fails due
+			//				// to the closed socket, it will be tidied up.
+			//				std::cout << "[" << id << "] Write Header Fail.\n";
+			//				m_socket.close();
+			//			}
+			//		});
+			//}
 
 			// ASYNC - Prime context to write a message body
 			void WriteBody()
@@ -176,10 +195,10 @@ namespace olc
 
 							// If the queue still has messages in it, then issue the task to 
 							// send the next messages' header.
-							if (!m_qMessagesOut.empty())
-							{
-								WriteHeader();
-							}
+							//if (!m_qMessagesOut.empty())
+							//{
+							//	WriteHeader();
+							//}
 						}
 						else
 						{
@@ -191,43 +210,43 @@ namespace olc
 			}
 
 			// ASYNC - Prime context ready to read a message header
-			void ReadHeader()
-			{
-				// If this function is called, we are expecting asio to wait until it receives
-				// enough bytes to form a header of a message. We know the headers are a fixed
-				// size, so allocate a transmission buffer large enough to store it. In fact, 
-				// we will construct the message in a "temporary" message object as it's 
-				// convenient to work with.
-				asio::async_read(m_socket, asio::buffer(&m_msgTemporaryIn.header, sizeof(message_header<T>)),
-					[this](std::error_code ec, std::size_t length)
-					{						
-						if (!ec)
-						{
-							// A complete message header has been read, check if this message
-							// has a body to follow...
-							if (m_msgTemporaryIn.header.size > 0)
-							{
-								// ...it does, so allocate enough space in the messages' body
-								// vector, and issue asio with the task to read the body.
-								m_msgTemporaryIn.body.resize(m_msgTemporaryIn.header.size);
-								ReadBody();
-							}
-							else
-							{
-								// it doesn't, so add this bodyless message to the connections
-								// incoming message queue
-								AddToIncomingMessageQueue();
-							}
-						}
-						else
-						{
-							// Reading form the client went wrong, most likely a disconnect
-							// has occurred. Close the socket and let the system tidy it up later.
-							std::cout << "[" << id << "] Read Header Fail.\n";
-							m_socket.close();
-						}
-					});
-			}
+			//void ReadHeader()
+			//{
+			//	// If this function is called, we are expecting asio to wait until it receives
+			//	// enough bytes to form a header of a message. We know the headers are a fixed
+			//	// size, so allocate a transmission buffer large enough to store it. In fact, 
+			//	// we will construct the message in a "temporary" message object as it's 
+			//	// convenient to work with.
+			//	asio::async_read(m_socket, asio::buffer(&m_msgTemporaryIn.header, sizeof(message_header<T>)),
+			//		[this](std::error_code ec, std::size_t length)
+			//		{						
+			//			if (!ec)
+			//			{
+			//				// A complete message header has been read, check if this message
+			//				// has a body to follow...
+			//				if (m_msgTemporaryIn.header.size > 0)
+			//				{
+			//					// ...it does, so allocate enough space in the messages' body
+			//					// vector, and issue asio with the task to read the body.
+			//					m_msgTemporaryIn.body.resize(m_msgTemporaryIn.header.size);
+			//					ReadBody();
+			//				}
+			//				else
+			//				{
+			//					// it doesn't, so add this bodyless message to the connections
+			//					// incoming message queue
+			//					AddToIncomingMessageQueue();
+			//				}
+			//			}
+			//			else
+			//			{
+			//				// Reading form the client went wrong, most likely a disconnect
+			//				// has occurred. Close the socket and let the system tidy it up later.
+			//				std::cout << "[" << id << "] Read Header Fail.\n";
+			//				m_socket.close();
+			//			}
+			//		});
+			//}
 
 			// ASYNC - Prime context ready to read a message body
 			void ReadBody()
@@ -266,7 +285,7 @@ namespace olc
 				// We must now prime the asio context to receive the next message. It 
 				// wil just sit and wait for bytes to arrive, and the message construction
 				// process repeats itself. Clever huh?
-				ReadHeader();
+				ReadBody();
 			}
 
 		protected:

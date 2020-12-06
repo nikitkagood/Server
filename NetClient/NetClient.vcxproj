@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Program Files (x86)\VS Additional Libraries\nlohmann-json\include;E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Program Files (x86)\VS Additional Libraries\nlohmann-json\include;E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Program Files (x86)\VS Additional Libraries\nlohmann-json\include;E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Program Files (x86)\VS Additional Libraries\nlohmann-json\include;E:\Program Files %28x86%29\VS Additional Libraries\asio-1.18.0\include;D:\Server\NetCommon;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

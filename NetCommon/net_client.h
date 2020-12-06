@@ -76,11 +76,18 @@ namespace olc
 
 		public:
 			// Send message to server
-			void Send(const message<T>& msg)
+			//void Send(const message<T>& msg)
+			//{
+			//	if (IsConnected())
+			//		 m_connection->Send(msg);
+			//}
+
+			void SendJson(const json& j)
 			{
 				if (IsConnected())
-					 m_connection->Send(msg);
+					 m_connection->Send(j);
 			}
+
 
 			// Retrieve queue of messages from server
 			tsqueue<owned_message<T>>& Incoming()
