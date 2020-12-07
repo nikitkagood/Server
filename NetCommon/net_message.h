@@ -33,11 +33,11 @@ namespace olc
 			}
 
 			// Override for std::cout compatibility - produces friendly description of message
-			friend std::ostream& operator << (std::ostream& os, const message<T>& msg)
-			{
-				os << "ID:" << int(msg.header.id) << " Size:" << msg.header.size;
-				return os;
-			}
+			//friend std::ostream& operator << (std::ostream& os, const message<T>& msg)
+			//{
+			//	os << "ID:" << int(msg.header.id) << " Size:" << msg.header.size;
+			//	return os;
+			//}
 
 			// Convenience Operator overloads - These allow us to add and remove stuff from
 			// the body vector as if it were a stack, so First in, Last Out. These are a 

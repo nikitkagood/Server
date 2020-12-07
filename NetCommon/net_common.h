@@ -4,7 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <deque>
-#include <optional>
+//#include <optional>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -19,7 +19,12 @@
 #include <asio.hpp>
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/internet.hpp>
+
+#include <windows.h> //Only in this order (after winsock2.h)
+
 #include <nlohmann/json.hpp>
+
+using namespace std;
 
 using json = nlohmann::json;
 

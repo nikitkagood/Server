@@ -4,11 +4,21 @@
 
 using namespace std;
 
-enum class CustomMsgTypes : uint32_t
+//enum class CustomMsgTypes : uint32_t
+//{
+//	ServerAccept,
+//	ServerDeny,
+//	ServerPing,
+//	MessageAll,
+//	ServerMessage,
+//};
+
+enum class Commands : uint32_t
 {
-	ServerAccept,
+	Authorize,
 	ServerDeny,
-	ServerPing,
+	OK,
+	PlayerList,
 	MessageAll,
 	ServerMessage,
 };
@@ -29,7 +39,7 @@ enum class CustomMsgTypes : uint32_t
 //  }}
 //};
 
-class CustomClient : public olc::net::client_interface<CustomMsgTypes>
+class CustomClient : public olc::net::client_interface<Commands>
 {
 public:
 	//void PingServer()	
@@ -122,6 +132,9 @@ public:
 
 int main()
 {
+	SetConsoleTitle(L"Blackjack by Nikita Belov");
+	setlocale(0, "");
+
 	CustomClient c;
 	c.Connect("127.0.0.1", 8005);
 
@@ -142,7 +155,7 @@ int main()
 	//		"description": "desc"
 	//	}
 	//}
-	c.send_state();
+	//c.send_state();
 	//Server: send to client cout << Player list ?
 	//Server:
 	//{
@@ -153,7 +166,7 @@ int main()
 	//			"max" : 100
 	//	}
 	//}
-	c.bet(20);
+	//c.bet(20);
 	//Server gives the cards
 
 	//Server (optional):
@@ -161,14 +174,14 @@ int main()
 	//	"command": "Insurance", //»гра проверит достаточно ли средств дл€ страховки
 	//		"data" : { }
 	//}
-	c.insurance();
+	//c.insurance();
 	//Server
 	//Hit, Stand, Double
 	//{
 	//	"command": "RequestAction",
 	//	"data" : { }
 	//}
-	//Server give
+	//Server give card
 
 
 
@@ -183,9 +196,11 @@ int main()
 			{
 				auto msg = c.Incoming().pop_front().msg;
 
-				switch (msg.header.id)
+				//switch (msg.header.id)
+				Commands command;
+				switch (command)
 				{
-				case CustomMsgTypes::ServerAccept:
+				case Commands::Authorize:
 				{
 					// Server has responded to a ping request				
 					std::cout << "Server Accepted Connection\n";

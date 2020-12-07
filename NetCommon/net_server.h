@@ -145,7 +145,40 @@ namespace olc
 			}
 			
 			// Send message to all clients
-			void MessageAllClients(const message<T>& msg, std::shared_ptr<connection<T>> pIgnoreClient = nullptr)
+			//void MessageAllClients(const message<T>& msg, std::shared_ptr<connection<T>> pIgnoreClient = nullptr)
+			//{
+			//	bool bInvalidClientExists = false;
+
+			//	// Iterate through all clients in container
+			//	for (auto& client : m_deqConnections)
+			//	{
+			//		// Check client is connected...
+			//		if (client && client->IsConnected())
+			//		{
+			//			// ..it is!
+			//			if(client != pIgnoreClient)
+			//				client->Send(msg);
+			//		}
+			//		else
+			//		{
+			//			// The client couldnt be contacted, so assume it has
+			//			// disconnected.
+			//			OnClientDisconnect(client);
+			//			client.reset();
+
+			//			// Set this flag to then remove dead clients from container
+			//			bInvalidClientExists = true;
+			//		}
+			//	}
+
+			//	// Remove dead clients, all in one go - this way, we dont invalidate the
+			//	// container as we iterated through it.
+			//	if (bInvalidClientExists)
+			//		m_deqConnections.erase(
+			//			std::remove(m_deqConnections.begin(), m_deqConnections.end(), nullptr), m_deqConnections.end());
+			//}
+
+			void SendJsonToAll(const json& j, std::shared_ptr<connection<T>> pIgnoreClient = nullptr)
 			{
 				bool bInvalidClientExists = false;
 
@@ -156,8 +189,8 @@ namespace olc
 					if (client && client->IsConnected())
 					{
 						// ..it is!
-						if(client != pIgnoreClient)
-							client->Send(msg);
+						if (client != pIgnoreClient)
+							client->SendJson(j);
 					}
 					else
 					{
@@ -211,13 +244,21 @@ namespace olc
 			// Called when a client appears to have disconnected
 			virtual void OnClientDisconnect(std::shared_ptr<connection<T>> client)
 			{
-
+				cout << "[" << m_deqConnections.back()->GetID() << "}" << " disconnected" << endl;
 			}
 
 			// Called when a message arrives
-			virtual void OnMessage(std::shared_ptr<connection<T>> client, message<T>& msg)
+			virtual void OnMessage(std::shared_ptr<connection<T>> client, json& incoming)
 			{
-
+				json j
+				{
+					{"command", "Authorize"},
+					{"data", {"name", "PlayerName"}}
+				};
+				if (j == incoming)
+				{
+					cout << "Authorization received" << endl;
+				}
 			}
 
 
@@ -236,7 +277,7 @@ namespace olc
 			asio::ip::tcp::acceptor m_asioAcceptor; // Handles new incoming connection attempts...
 
 			// Clients will be identified in the "wider system" via an ID
-			uint32_t nIDCounter = 10000;
+			uint32_t nIDCounter = 100;
 		};
 	}
 }

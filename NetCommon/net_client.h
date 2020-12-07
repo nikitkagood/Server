@@ -85,7 +85,7 @@ namespace olc
 			void SendJson(const json& j)
 			{
 				if (IsConnected())
-					 m_connection->Send(j);
+					 m_connection->SendJson(j);
 			}
 
 

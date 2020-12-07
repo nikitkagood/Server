@@ -115,11 +115,6 @@ namespace olc
 				asio::post(m_asioContext,
 					[this, j]()
 					{
-						// If the queue has a message in it, then we must 
-						// assume that it is in the process of asynchronously being written.
-						// Either way add the message to the queue to be output. If no messages
-						// were available to be written, then start the process of writing the
-						// message at the front of the queue.
 						bool bWritingMessage = !m_qMessagesOut.empty();
 						m_qMessagesOut.push_back(j);
 						if (!bWritingMessage)
