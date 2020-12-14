@@ -90,7 +90,12 @@ namespace olc
 
 
 			// Retrieve queue of messages from server
-			tsqueue<owned_message<T>>& Incoming()
+			//tsqueue<owned_message<T>>& Incoming()
+			//{ 
+			//	return m_qMessagesIn;
+			//}
+
+			deque<owned_message<T>>& Incoming()
 			{ 
 				return m_qMessagesIn;
 			}
@@ -105,7 +110,8 @@ namespace olc
 			
 		private:
 			// This is the thread safe queue of incoming messages from server
-			tsqueue<owned_message<T>> m_qMessagesIn;
+			//tsqueue<owned_message<T>> m_qMessagesIn;
+			deque<owned_message<T>> m_qMessagesIn;
 		};
 	}
 }

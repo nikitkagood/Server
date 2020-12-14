@@ -77,8 +77,8 @@ public:
 		shared_ptr<asio::ip::tcp::socket> socket_ptr;
 
 		string state;
-		socket_ptr->write_some(state);
-		socket_ptr->read_some(state);
+		//socket_ptr->write_some(state);
+		//socket_ptr->read_some(state);
 	}
 
 	//TcpPlayer::send_state() 
@@ -105,6 +105,7 @@ public:
 			{"command", "OK"}, 
 			{"data" , {"insurance", decision} }
 		};
+		SendJson(j);
 	}
 
 	void GameDecision()
@@ -115,6 +116,7 @@ public:
 			{"command", "OK"}, 
 			{"data", { "action", decision }} 
 		};
+		SendJson(j);
 	}
 
 	//void to_json(json& j, const CustomMsgTypes& msg) {
@@ -139,6 +141,7 @@ int main()
 	c.Connect("127.0.0.1", 8005);
 
 	c.Authorize();
+
 	//Server:
 	//{
 	//	"command": "OK",
@@ -192,22 +195,25 @@ int main()
 	{
 		if (c.IsConnected())
 		{
-			if (!c.Incoming().empty())
-			{
-				auto msg = c.Incoming().pop_front().msg;
+			//if (!c.Incoming().empty())
+			//{
+			//	//auto msg = c.Incoming().pop_front().msg;
+			//	//auto msg = c.Incoming().pop_front().msg;
 
-				//switch (msg.header.id)
-				Commands command;
-				switch (command)
-				{
-				case Commands::Authorize:
-				{
-					// Server has responded to a ping request				
-					std::cout << "Server Accepted Connection\n";
-				}
-				break;
-				}
-			}
+			//	////switch (msg.header.id)
+			//	//Commands command;
+			//	//switch (command)
+			//	//{
+			//	//case Commands::Authorize:
+			//	//{
+			//	//	// Server has responded to a ping request				
+			//	//	std::cout << "Server Accepted Connection\n";
+			//	//}
+			//	//break;
+			//	//}
+
+
+			//}
 		}
 		else
 		{

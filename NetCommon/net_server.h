@@ -211,25 +211,26 @@ namespace olc
 						std::remove(m_deqConnections.begin(), m_deqConnections.end(), nullptr), m_deqConnections.end());
 			}
 
-			// Force server to respond to incoming messages
-			void Update(size_t nMaxMessages = -1, bool bWait = false)
-			{
-				if (bWait) m_qMessagesIn.wait();
+			//// Force server to respond to incoming messages
+			//void Update(size_t nMaxMessages = -1, bool bWait = false)
+			//{
+			//	if (bWait) m_qMessagesIn.wait();
 
-				// Process as many messages as you can up to the value
-				// specified
-				size_t nMessageCount = 0;
-				while (nMessageCount < nMaxMessages && !m_qMessagesIn.empty())
-				{
-					// Grab the front message
-					auto msg = m_qMessagesIn.pop_front();
+			//	// Process as many messages as you can up to the value
+			//	// specified
+			//	size_t nMessageCount = 0;
+			//	while (nMessageCount < nMaxMessages && !m_qMessagesIn.empty())
+			//	{
+			//		// Grab the front message
+			//		auto msg = m_qMessagesIn.pop_front();
 
-					// Pass to message handler
-					OnMessage(msg.remote, msg.msg);
+			//		// Pass to message handler
+			//		//OnMessage(msg.remote, msg.msg);
+			//		OnMessage();
 
-					nMessageCount++;
-				}
-			}
+			//		nMessageCount++;
+			//	}
+			//}
 
 		protected:
 			// This server class should override thse functions to implement
@@ -264,7 +265,9 @@ namespace olc
 
 		protected:
 			// Thread Safe Queue for incoming message packets
-			tsqueue<owned_message<T>> m_qMessagesIn;
+			//tsqueue<owned_message<T>> m_qMessagesIn;
+
+			deque<owned_message<T>> m_qMessagesIn;
 
 			// Container of active validated connections
 			std::deque<std::shared_ptr<connection<T>>> m_deqConnections;

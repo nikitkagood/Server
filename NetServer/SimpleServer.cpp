@@ -80,9 +80,11 @@ int main()
 	CustomServer server(8005); 
 	server.Start();
 
-	while (1)
+	while (true)
 	{
-		server.Update(-1, true);
+		//server.Update(-1, true);
+
+
 	}
 	
 

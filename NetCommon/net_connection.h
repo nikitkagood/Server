@@ -24,7 +24,13 @@ namespace olc
 		public:
 			// Constructor: Specify Owner, connect to context, transfer the socket
 			//				Provide reference to incoming message queue
-			connection(owner parent, asio::io_context& asioContext, asio::ip::tcp::socket socket, tsqueue<owned_message<T>>& qIn)
+			//connection(owner parent, asio::io_context& asioContext, asio::ip::tcp::socket socket, tsqueue<owned_message<T>>& qIn)
+			//	: m_asioContext(asioContext), m_socket(std::move(socket)), m_qMessagesIn(qIn)
+			//{
+			//	m_nOwnerType = parent;
+			//}
+
+			connection(owner parent, asio::io_context& asioContext, asio::ip::tcp::socket socket, deque<owned_message<T>>& qIn)
 				: m_asioContext(asioContext), m_socket(std::move(socket)), m_qMessagesIn(qIn)
 			{
 				m_nOwnerType = parent;
@@ -115,8 +121,9 @@ namespace olc
 				asio::post(m_asioContext,
 					[this, j]()
 					{
-						bool bWritingMessage = !m_qMessagesOut.empty();
-						m_qMessagesOut.push_back(j);
+						bool bWritingMessage = !m_qJsonOut.empty();
+						//m_qMessagesOut.push_back(j);
+						m_qJsonOut.push_back(j);
 						if (!bWritingMessage)
 						{
 							WriteBody();
@@ -174,19 +181,84 @@ namespace olc
 			//}
 
 			// ASYNC - Prime context to write a message body
-			void WriteBody()
+			//void WriteBody()
+			//{
+			//	// If this function is called, a header has just been sent, and that header
+			//	// indicated a body existed for this message. Fill a transmission buffer
+			//	// with the body data, and send it!
+			//	asio::async_write(m_socket, asio::buffer(m_qMessagesOut.front().body.data(), m_qMessagesOut.front().body.size()),
+			//		[this](std::error_code ec, std::size_t length)
+			//		{
+			//			if (!ec)
+			//			{
+			//				// Sending was successful, so we are done with the message
+			//				// and remove it from the queue
+			//				m_qMessagesOut.pop_front();
+
+			//				// If the queue still has messages in it, then issue the task to 
+			//				// send the next messages' header.
+			//				//if (!m_qMessagesOut.empty())
+			//				//{
+			//				//	WriteHeader();
+			//				//}
+			//			}
+			//			else
+			//			{
+			//				// Sending failed, see WriteHeader() equivalent for description :P
+			//				std::cout << "[" << id << "] Write Body Fail.\n";
+			//				m_socket.close();
+			//			}
+			//		});
+			//}
+
+			//void WriteBody()
+			//{
+			//	// If this function is called, a header has just been sent, and that header
+			//	// indicated a body existed for this message. Fill a transmission buffer
+			//	// with the body data, and send it!
+
+			//	asio::async_write(m_socket, asio::buffer(m_qMessagesOut.front().body.data(), m_qMessagesOut.front().body.size()),
+			//		[this](std::error_code ec, std::size_t length)
+			//		{
+			//			if (!ec)
+			//			{
+			//				// Sending was successful, so we are done with the message
+			//				// and remove it from the queue
+			//				m_qMessagesOut.pop_front();
+
+			//				// If the queue still has messages in it, then issue the task to 
+			//				// send the next messages' header.
+			//				//if (!m_qMessagesOut.empty())
+			//				//{
+			//				//	WriteHeader();
+			//				//}
+			//			}
+			//			else
+			//			{
+			//				// Sending failed, see WriteHeader() equivalent for description :P
+			//				std::cout << "[" << id << "] Write Body Fail.\n";
+			//				m_socket.close();
+			//			}
+			//		});
+			//}
+
+			void Write()
 			{
 				// If this function is called, a header has just been sent, and that header
 				// indicated a body existed for this message. Fill a transmission buffer
 				// with the body data, and send it!
-				asio::async_write(m_socket, asio::buffer(m_qMessagesOut.front().body.data(), m_qMessagesOut.front().body.size()),
+
+				json j = m_qJsonOut.front();
+				//j.get<string>().c_str()
+
+				asio::async_write(m_socket, asio::buffer(j.dump(), j.size()),
 					[this](std::error_code ec, std::size_t length)
 					{
 						if (!ec)
 						{
 							// Sending was successful, so we are done with the message
 							// and remove it from the queue
-							m_qMessagesOut.pop_front();
+							m_qJsonOut.pop_front();
 
 							// If the queue still has messages in it, then issue the task to 
 							// send the next messages' header.
@@ -203,6 +275,8 @@ namespace olc
 						}
 					});
 			}
+
+
 
 			// ASYNC - Prime context ready to read a message header
 			//void ReadHeader()
@@ -292,10 +366,15 @@ namespace olc
 
 			// This queue holds all messages to be sent to the remote side
 			// of this connection
-			tsqueue<message<T>> m_qMessagesOut;
+			//tsqueue<message<T>> m_qMessagesOut;
+			//deque<message<T>> m_qMessagesOut;
+			//tsqueue<json> m_qJsonOut;
+
+			deque<json> m_qJsonOut;
 
 			// This references the incoming queue of the parent object
-			tsqueue<owned_message<T>>& m_qMessagesIn;
+			//tsqueue<owned_message<T>>& m_qMessagesIn;
+			deque<owned_message<T>>& m_qMessagesIn;
 
 			// Incoming messages are constructed asynchronously, so we will
 			// store the part assembled message here, until it is ready
